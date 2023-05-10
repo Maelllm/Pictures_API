@@ -24,15 +24,11 @@ class Migration(migrations.Migration):
                 ("image", models.ImageField(upload_to="media/images/")),
                 (
                     "thumbnail_200",
-                    models.ImageField(
-                        blank=True, null=True, upload_to="media/thumbnails_200"
-                    ),
+                    models.ImageField(blank=True, null=True, upload_to="media/thumbnails_200"),
                 ),
                 (
                     "thumbnail_400",
-                    models.ImageField(
-                        blank=True, null=True, upload_to="media/thumbnails_400"
-                    ),
+                    models.ImageField(blank=True, null=True, upload_to="media/thumbnails_400"),
                 ),
                 ("creation_date", models.DateField(auto_now_add=True)),
             ],

@@ -1,20 +1,22 @@
 import time
-
-from django.http import HttpResponse, Http404, HttpResponseNotFound
-from django.utils import timezone
-from rest_framework import status, viewsets, generics
-from rest_framework.exceptions import PermissionDenied
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.viewsets import ModelViewSet
-from rest_framework.views import APIView, View
-from django.core.signing import Signer, BadSignature, TimestampSigner, SignatureExpired
-from django.shortcuts import get_object_or_404, redirect
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from datetime import datetime, timedelta
 
-from api.serializer import ImageUploadSerializer, ExpireImageSerializer, SingleImageSerializer, \
-    BaseUserImageSerializer, AdvancedUserImageSerializer
+from django.core.signing import (BadSignature, SignatureExpired, Signer,
+                                 TimestampSigner)
+from django.http import Http404, HttpResponse, HttpResponseNotFound
+from django.shortcuts import get_object_or_404, redirect
+from django.utils import timezone
+from rest_framework import generics, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import FormParser, MultiPartParser
+from rest_framework.response import Response
+from rest_framework.views import APIView, View
+from rest_framework.viewsets import ModelViewSet
+
+from api.serializer import (AdvancedUserImageSerializer,
+                            BaseUserImageSerializer, ExpireImageSerializer,
+                            ImageUploadSerializer, SingleImageSerializer)
 from images.models import UserImage
 
 
@@ -24,7 +26,7 @@ class UserImageViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         user = self.request.user
-        user_type = getattr(user, 'user_type', None)
+        user_type = getattr(user, "user_type", None)
 
         if user.is_authenticated:
             if user_type == 1:
@@ -41,10 +43,10 @@ class ImageUploadView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = ImageUploadSerializer(data=request.data)
         if serializer.is_valid():
-            image = serializer.validated_data['image']
+            image = serializer.validated_data["image"]
             user_image = UserImage(image=image)
             user_image.save()
-            return Response({'message': 'Image uploaded successfully'}, status=status.HTTP_201_CREATED)
+            return Response({"message": "Image uploaded successfully"}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -58,8 +60,7 @@ class UserImageExpireViewSet(viewsets.ViewSet):
         """
         image = get_object_or_404(UserImage, pk=pk)
         expirable_link = self.get_expirable_link(request, pk=pk)
-        serializer = ExpireImageSerializer(
-            {'id': image.id, 'image': image.image, 'expirable_link': expirable_link})
+        serializer = ExpireImageSerializer({"id": image.id, "image": image.image, "expirable_link": expirable_link})
         return Response(serializer.data)
 
     def get_expirable_link(self, request, pk, expires_in=None):
@@ -76,19 +77,19 @@ class UserImageExpireViewSet(viewsets.ViewSet):
         expiration_time = datetime.now() + timedelta(seconds=expires_in)
         utc_expiration_time = timezone.make_aware(expiration_time, timezone.utc)
         expirable_link = request.build_absolute_uri(
-            f'/api/images/{pk}/expirable-link/{signed_value}.{int(utc_expiration_time.timestamp())}')
+            f"/api/images/{pk}/expirable-link/{signed_value}.{int(utc_expiration_time.timestamp())}"
+        )
 
         return expirable_link
 
-    @action(detail=True, methods=['get'])
+    @action(detail=True, methods=["get"])
     def expire(self, request, pk=None):
         """
         Endpoint to generate and return a newly generated expiring link for the UserImage.
         """
         image = get_object_or_404(UserImage, pk=pk)
         expirable_link = self.get_expirable_link(request, pk)
-        serializer = ExpireImageSerializer(
-            {'id': image.id, 'image': image.image, 'expirable_link': expirable_link})
+        serializer = ExpireImageSerializer({"id": image.id, "image": image.image, "expirable_link": expirable_link})
         return Response(serializer.data)
 
 
@@ -125,7 +126,9 @@ class ExpirableSingleImageView(View):
 
         # Return the image data
         with image.image.open() as f:
-            return HttpResponse(f.read(),
-                                content_type=image.image.file.content_type
-                                if hasattr(image.image.file,
-                                           'content_type') else 'application/octet-stream')
+            return HttpResponse(
+                f.read(),
+                content_type=image.image.file.content_type
+                if hasattr(image.image.file, "content_type")
+                else "application/octet-stream",
+            )

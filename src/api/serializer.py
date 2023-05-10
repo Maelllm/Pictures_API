@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from images.models import UserImage
 
 
@@ -31,6 +32,12 @@ from images.models import UserImage
 #
 #
 class ImageUploadSerializer(serializers.ModelSerializer):
+    def validate_image(self, value):
+        valid_formats = ["image/jpeg", "image/png"]
+        if value.content_type not in valid_formats:
+            raise serializers.ValidationError("Invalid image format. Only JPEG and PNG are supported.")
+        return value
+
     class Meta:
         model = UserImage
         fields = ("image",)
@@ -41,7 +48,7 @@ class ExpireImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserImage
-        fields = ['id', 'image', 'expirable_link']
+        fields = ["id", "image", "expirable_link"]
 
 
 class BaseUserImageSerializer(serializers.ModelSerializer):
@@ -84,12 +91,11 @@ class SingleImageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserImage
-        fields = ['id', 'created_at', 'expirable_link']
+        fields = ["id", "created_at", "expirable_link"]
 
     def get_expirable_link(self, obj):
-        request = self.context.get('request')
+        request = self.context.get("request")
         if request is None:
             return None
 
         return obj.image.url
-
