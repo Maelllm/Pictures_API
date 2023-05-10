@@ -1,8 +1,9 @@
 from django.core.signing import Signer
-from django.urls import reverse
 from django.shortcuts import redirect
+from django.urls import reverse
 
 from images.models import UserImage
+
 
 def expirable_image_view(request, signed_value):
     # Retrieve the UserImage object using the signed value
